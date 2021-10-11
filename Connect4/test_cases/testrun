@@ -1,0 +1,65 @@
+#!/bin/bash
+if [ ! -f out/out.out ]; then
+  mkdir out
+  echo "This is your output folder." >> out/out.out
+fi
+if [ ! -f results/res.txt ]; then
+  mkdir results
+  echo "This is your results folder." >> results/res.txt
+fi
+if [ -f src/SU$1.java ]; then
+  if [ -f srcSU$1.class ]; then
+    rm src/SU$1.class
+  fi
+  
+  if javac src/SU$1.java > /dev/null ; then 
+    echo "--------------------------------------------------------------------"
+  else
+    echo "--------------------------------------------------------------------"
+    echo "Compilation error, the test cases will not run."
+    echo "--------------------------------------------------------------------"
+    exit
+  fi
+else
+  echo "Please put your SU$1.java file in the src folder or make sure your student number is correct"
+  exit
+fi
+cd src
+echo "Running Normal Tests"
+echo "--------------------------------------------------------------------"
+count=0
+
+for TEST_NUM in {0..20}; do
+      timeout 0.01m java SU$1 T < ../test_files/test${TEST_NUM}.in > ../out/out${TEST_NUM}.out
+      if diff -bB ../out/out${TEST_NUM}.out ../test_files/test${TEST_NUM}.txt > /dev/null ; then 
+        echo ">>>> Passed test ${TEST_NUM} :-D"
+        count=$((count+1))
+      else
+      echo ">>>> ERROR Test Case ${TEST_NUM} failed!" 
+      diff -bB ../test_files/test${TEST_NUM}.txt ../out/out${TEST_NUM}.out > ../results/diff${TEST_NUM}.out
+      echo
+      echo "Test case description"
+      cat ../test_files/test${TEST_NUM}.ifo
+      echo
+      fi
+    done;
+
+echo "--------------------------------------------------------------------"
+echo "Running Obstacle Tests"
+echo "--------------------------------------------------------------------"
+
+for TEST_NUM in {1..21}; do
+      timeout 0.01m java SU$1 T < ../obstacle_test/obs_test${TEST_NUM}.in > ../out/obs_out${TEST_NUM}.out
+      if diff -bB ../out/obs_out${TEST_NUM}.out ../obstacle_test/obs_test${TEST_NUM}.txt > /dev/null ; then 
+        echo ">>>> Passed obstacle test ${TEST_NUM} :-D" 
+        count=$((count+1))
+      else
+      echo ">>>> ERROR Obstacle Test Case ${TEST_NUM} failed!" 
+      diff -bB ../obstacle_test/obs_test${TEST_NUM}.txt ../out/obs_out${TEST_NUM}.out > ../results/obs_diff${TEST_NUM}.out
+      echo
+      echo "Test case description"
+      cat ../obstacle_test/obs_test${TEST_NUM}.ifo
+      echo
+      fi
+    done;
+echo "$count out of 42"
